@@ -3,6 +3,7 @@ import * as express from 'express';
 import * as zoomApi from '../../util/zoom-api';
 import * as zoomHelpers from '../../util/zoom-helpers';
 import * as store from '../../util/store';
+import { getCounterInvite as _getCounterInvite } from '../../util/store';
 
 // In-client OAuth 1/2
 export const inClientAuthorize: express.RequestHandler = async (req, res, next) => {
@@ -250,7 +251,7 @@ export const auth: express.RequestHandler = async (req, res, next) => {
 
 // ZOOM APP HOME URL HANDLER ==================================================
 // This route is called when the app opens
-export const home: express.RequestHandler = (req, res, next) => {
+export const home: express.RequestHandler = async (req, res, next) => {
   console.log(
     'ZOOM APP HOME URL HANDLER ==================================================',
     '\n'
@@ -277,11 +278,55 @@ export const home: express.RequestHandler = (req, res, next) => {
     // 2. Persist user id and meetingUUID
     req.session.user = decryptedAppContext.uid;
     req.session.meetingUUID = decryptedAppContext.mid;
+
+    // 3. Redirect to frontend
+    console.log('3. Redirect to frontend', '\n');
+
+    if (decryptedAppContext.iid) {
+      const counterId = await _getCounterInvite(decryptedAppContext.iid)
+      res.redirect(`/counter/${counterId}`);
+    } else {
+      res.redirect('/');
+    }
   } catch (error) {
     return next(error)
   }
-
-  // 3. Redirect to frontend
-  console.log('3. Redirect to frontend', '\n');
-  res.redirect('/');
 };
+
+export const newCounter: express.RequestHandler = async (req, res) => {
+  console.log("NEW COUNTER");
+
+  if (req.session.user) {
+    const id = await store.createCounter();
+    res.json({ id });
+  } else {
+    res.sendStatus(400);
+  }
+}
+
+export const newCounterInvite: express.RequestHandler = async (req, res) => {
+  console.log("NEW COUNTER INVITE");
+
+  const id = req.body.id;
+  const mid = req.body.mid;
+
+  if (id && mid && req.session.user) {
+    store.createCounterInvite(id, mid);
+    res.sendStatus(201);
+  } else {
+    res.sendStatus(400);
+  }
+}
+
+export const getCounterInvite: express.RequestHandler = async (req, res) => {
+  console.log("GET COUNTER INVITE");
+
+  const mid = req.query.mid as string;
+
+  if (mid && req.session.user) {
+    const id = await store.getCounterInvite(mid);
+    res.json({ id });
+  } else {
+    res.sendStatus(400);
+  }
+}

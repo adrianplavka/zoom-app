@@ -1,18 +1,16 @@
 import "./config";
 
 import path from 'path';
-import url from 'url'
 import http from 'http';
 import express from 'express';
 import morgan from 'morgan';
+import { WebSocket, WebSocketServer } from 'ws';
 
 import * as middleware from './middleware';
 import zoomAppRouter from './api/zoom-app/router';
 import thirdPartyOAuthRouter from './api/thirdpartyauth/router';
 import zoomRouter from './api/zoom/router';
-
-const __filename = url.fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { decCounter, getCounter, incCounter } from "./util/store";
 
 const host = process.env.HOST ?? 'localhost';
 const port = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -71,10 +69,48 @@ app.use((error: Error, req: express.Request, res: express.Response) => {
   })
 })
 
-if (process.env.NODE_ENV === 'production')
-  http.createServer(app).listen(port, host, () => {
-    console.log(`Zoom App is listening on http://${host}:${port}`)
-  });
+const server = http.createServer(app).listen(port, host, () => {
+  console.log(`Zoom App is listening on http://${host}:${port}`)
+});
+
+const wss = new WebSocketServer({ server });
+
+wss.on('connection', (ws, req) => {
+  ws.on('message', async (data) => {
+    const [type, payload] = data.toString().split(':');
+
+    switch (type) {
+      case "getCounter": {
+        const counter = await getCounter(payload);
+
+        ws.send(`counter:${counter}`);
+        break;
+      }
+      case "incCounter": {
+        const counter = await incCounter(payload);
+
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(`counter:${counter}`);
+          }
+        });
+        break;
+      }
+      case "decCounter": {
+        const counter = await decCounter(payload);
+
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(`counter:${counter}`);
+          }
+        });
+        break;
+      }
+      default:
+        break;
+    }
+  })
+});
 
 // TODO: Fix declaration merging for libraries
 

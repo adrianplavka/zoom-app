@@ -1,6 +1,7 @@
-import redis from 'redis';
+import * as redis from 'redis';
 
 import * as encrypt from './encrypt';
+import { generateCodeVerifier } from './zoom-helpers';
 
 /**
  * The auth token exchange happens before the Zoom App is launched. Therefore,
@@ -30,7 +31,7 @@ export const getUser = async (zoomUserId: string) => {
   return JSON.parse(encrypt.beforeDeserialization(user))
 };
 
-export const upsertUser = async (zoomUserId: string, accessToken: string, refreshToken: string, expired_at: number) => {
+export const upsertUser = (zoomUserId: string, accessToken: string, refreshToken: string, expired_at: number) => {
   const isValidUser = Boolean(
     typeof zoomUserId === 'string' &&
     typeof accessToken === 'string' &&
@@ -72,14 +73,48 @@ export const logoutUser = async (zoomUserId: string) => {
   )
 };
 
-export const deleteUser = async (zoomUserId: string) => db.del(zoomUserId);
+export const deleteUser = (zoomUserId: string) => db.del(zoomUserId);
 
-export const storeInvite = async (invitationID: string, tabState: string) => {
+export const storeInvite = (invitationID: string, tabState: string) => {
   const dbKey = `invite:${invitationID}`
   return db.set(dbKey, tabState)
 };
 
-export const getInvite = async (invitationID: string) => {
+export const getInvite = (invitationID: string) => {
   const dbKey = `invite:${invitationID}`
   return db.get(dbKey)
 };
+
+export const createCounter = async () => {
+  const id = generateCodeVerifier();
+
+  const dbKey = `counter:${id}`;
+  await db.set(dbKey, 0);
+
+  return id;
+}
+
+export const getCounter = (id: string) => {
+  const dbKey = `counter:${id}`;
+  return db.get(dbKey);
+}
+
+export const incCounter = (id: string) => {
+  const dbKey = `counter:${id}`;
+  return db.incr(dbKey);
+}
+
+export const decCounter = (id: string) => {
+  const dbKey = `counter:${id}`;
+  return db.decr(dbKey);
+}
+
+export const createCounterInvite = (id: string, mid: string) => {
+  const dbKey = `counterInvite:${mid}`;
+  return db.set(dbKey, id);
+}
+
+export const getCounterInvite = (mid: string) => {
+  const dbKey = `counterInvite:${mid}`;
+  return db.get(dbKey);
+}

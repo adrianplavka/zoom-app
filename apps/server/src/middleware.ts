@@ -1,6 +1,6 @@
 import expressSession from 'express-session';
 import SessionStore from 'connect-redis';
-import redis from 'redis';
+import * as redis from 'redis';
 import type * as express from 'express';
 
 import * as store from './util/store';

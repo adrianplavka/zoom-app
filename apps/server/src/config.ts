@@ -1,9 +1,5 @@
 import path from 'path';
 import dotenv from 'dotenv';
-import url from 'url';
-
-const __filename = url.fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 dotenv.config({
   path: path.join(__dirname, `../.env${process.env.NODE_ENV ?? ""}`),

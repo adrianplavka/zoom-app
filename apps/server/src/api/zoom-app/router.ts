@@ -10,5 +10,8 @@ router
   .get('/home', controller.home)
   .get('/authorize', controller.inClientAuthorize)
   .post('/onauthorized', controller.inClientOnAuthorized)
+  .post('/counter', controller.newCounter)
+  .get('/counter/invite', controller.getCounterInvite)
+  .post('/counter/invite', controller.newCounterInvite)
 
 export default router;

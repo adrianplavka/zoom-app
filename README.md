@@ -133,7 +133,7 @@ Follow these instructions for the "Development" section
 
 ### Start applications
 
-- Use the `npx nx build client` & `npx nx serve server` to start client building & server.
+- Use the `npx nx serve client` & `npx nx serve server` to start client building & server.
 
 ### Install the app
 

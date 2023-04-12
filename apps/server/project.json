@@ -19,19 +19,7 @@
       }
     },
     "serve": {
-      "executor": "@nrwl/vite:dev-server",
-      "defaultConfiguration": "development",
-      "options": {
-        "buildTarget": "server:build"
-      },
-      "configurations": {
-        "development": {
-          "buildTarget": "server:build:development"
-        },
-        "production": {
-          "buildTarget": "server:build:production"
-        }
-      }
+      "command": "pnpm exec tsx watch apps/server/src/index.ts"
     },
     "lint": {
       "executor": "@nrwl/linter:eslint",

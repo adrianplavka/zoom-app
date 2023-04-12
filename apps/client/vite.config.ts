@@ -9,7 +9,7 @@ export default defineConfig({
   server: {
     port: 3000,
     host: "127.0.0.1",
-    cors: true
+    cors: true,
   },
 
   preview: {
@@ -24,6 +24,10 @@ export default defineConfig({
       root: "../../",
     }),
   ],
+
+  build: {
+    sourcemap: true,
+  },
 
   // Uncomment this if you are using workers.
   // worker: {
